@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct CLI {
+struct Cli {
     file_path: String
 }
 
@@ -27,7 +27,7 @@ fn get_raw_string (file_path: String) -> String {
     string
 }
 
-fn get_matches (string: &String) -> BTreeMap<usize,String> {
+fn get_matches (string: &str) -> BTreeMap<usize,String> {
     let re = Regex::new(r"mul[(][0-9]{1,3},[0-9]{1,3}[)]").unwrap();
     let mut matches = BTreeMap::<usize,String>::new();
     for mat in re.find_iter(string){
@@ -39,7 +39,7 @@ fn get_matches (string: &String) -> BTreeMap<usize,String> {
     matches
 }
 
-fn get_dos_and_donts(string: &String) -> Vec<(usize, usize)> {
+fn get_dos_and_donts(string: &str) -> Vec<(usize, usize)> {
     let re_do = Regex::new(r"do[(][)]").unwrap();
     let re_dont = Regex::new(r"don't[(][)]").unwrap();
     
@@ -66,11 +66,11 @@ fn get_dos_and_donts(string: &String) -> Vec<(usize, usize)> {
     dos
 }
 
-fn calc_mult(mult: &String) -> i32 {
+fn calc_mult(mult: &str) -> i32 {
     let re = Regex::new(r"[0-9]{1,3}").unwrap();
     let mut num = 1;
     for num_str in re.find_iter(mult){
-        num = num * num_str.as_str().parse::<i32>().unwrap();
+        num *= num_str.as_str().parse::<i32>().unwrap();
     }
     num
 }
@@ -83,7 +83,7 @@ fn add_mults(matches: &Vec<String>) -> i32 {
     sum
 }
 
-fn filter_mults(matches: &BTreeMap<usize,String>, dos: &Vec<(usize,usize)>) -> BTreeMap<usize,String> {
+fn filter_mults(matches: &BTreeMap<usize,String>, dos: &[(usize,usize)]) -> BTreeMap<usize,String> {
     let mut filtered_matches = BTreeMap::<usize,String>::new();
     let mut do_iter = dos.iter();
     let mut current_pair = do_iter.next().unwrap();
@@ -106,7 +106,7 @@ fn filter_mults(matches: &BTreeMap<usize,String>, dos: &Vec<(usize,usize)>) -> B
 }
 
 fn main(){
-    let args = CLI::parse();
+    let args = Cli::parse();
     let program = get_raw_string(args.file_path);
     let matches = get_matches(&program);
     println!("First Answer: {}", add_mults(&matches.values().cloned().collect()));

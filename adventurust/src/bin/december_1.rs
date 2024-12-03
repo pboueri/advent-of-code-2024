@@ -3,7 +3,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct CLI {
+struct Cli {
     file_path: String
 }
 
@@ -28,7 +28,7 @@ fn get_sorted_lists (file_path: String) -> (Vec<i32>, Vec<i32>) {
     (list_1, list_2)
 }
 
-fn solve_puzzle_one(list_1: &Vec<i32>, list_2: &Vec<i32>) -> i32 {
+fn solve_puzzle_one(list_1: &[i32], list_2: &[i32]) -> i32 {
     let mut diff = 0;
     for (num1, num2) in list_1.iter().zip(list_2.iter()) {
         diff += (num1 - num2).abs();
@@ -36,7 +36,7 @@ fn solve_puzzle_one(list_1: &Vec<i32>, list_2: &Vec<i32>) -> i32 {
     diff
 }
 
-fn solve_puzzle_two(list_1: &Vec<i32>, list_2: &Vec<i32>) -> i32 {
+fn solve_puzzle_two(list_1: &[i32], list_2: &[i32]) -> i32 {
     let mut sim_score = 0;
     for num1  in  list_1.iter() {
         let mut multiplier = 0;
@@ -51,7 +51,7 @@ fn solve_puzzle_two(list_1: &Vec<i32>, list_2: &Vec<i32>) -> i32 {
 }
 
 fn main(){
-    let args = CLI::parse();
+    let args = Cli::parse();
     let (list_1, list_2) = get_sorted_lists(args.file_path);
     println!("Answer 1: {}", solve_puzzle_one(&list_1, &list_2));
     println!("Answer 2: {}", solve_puzzle_two(&list_1, &list_2));

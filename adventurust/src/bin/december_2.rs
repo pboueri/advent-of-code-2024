@@ -4,7 +4,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct CLI {
+struct Cli {
     file_path: String
 }
 
@@ -25,7 +25,7 @@ fn get_list_of_levels (file_path: String) -> Vec<Vec<i32>> {
     lists
 }
 
-fn check_if_safe(levels: &Vec<i32>) -> Option<usize> {
+fn check_if_safe(levels: &[i32]) -> Option<usize> {
     let len = levels.len();
     let slice_1 = &levels[..len-1];
     let slice_2 =  &levels[1..];
@@ -85,7 +85,7 @@ fn solve_puzzle_two(lists: &Vec<Vec<i32>>) -> i32 {
 }
 
 fn main(){
-    let args = CLI::parse();
+    let args = Cli::parse();
     let lists = get_list_of_levels(args.file_path);
     println!("First Line: {:?}", lists.first().unwrap());
     println!("Answer 1: {}", solve_puzzle_one(&lists));

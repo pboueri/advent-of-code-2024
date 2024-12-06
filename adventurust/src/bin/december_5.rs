@@ -1,6 +1,10 @@
-use std::fs;
+use std::{collections::HashMap, fs};
 use clap::Parser;
 use log::{self, debug, info};
+use std::cmp::Ordering;
+use std::time::Instant;
+
+
 
 type PrintCommand = Vec<i32>;
 
@@ -135,6 +139,41 @@ fn get_rules_and_prints (file_path: String) -> (Vec<Rule>, Vec<PrintCommand>) {
 }
 
 
+fn comparator_approach(rules: &Vec<Rule>, prints: &Vec<PrintCommand>) -> i32 {
+    let mut rules_map = HashMap::<i32, std::collections::HashSet<i32>>::new();
+    for rule in rules {
+        if !rules_map.contains_key(&rule.0) {
+            rules_map.insert(rule.0, std::collections::HashSet::new());
+        }
+        rules_map.get_mut(&rule.0).unwrap().insert(rule.1);
+    }   
+
+    let mut sum = 0;
+
+    for print_command in prints {
+        if !check_print_command(print_command, rules) {
+            debug!("Print command {:?} does not satisfy rules", print_command);
+            let mut fixed_print = print_command.clone();
+            fixed_print.sort_by(|a, b| {
+                if rules_map.contains_key(&a) {
+                    if rules_map.get(&a).unwrap().contains(&b){
+                        return Ordering::Less;
+                    } else {
+                        return Ordering::Greater;
+                    }
+                } else{
+                    return Ordering::Less;
+                }
+            });
+            debug!("Fixed print command {:?}", fixed_print);
+            sum += get_print_middle_value(&fixed_print);
+        }
+    }   
+
+    sum
+}
+
+
 
 
 fn main(){
@@ -144,7 +183,13 @@ fn main(){
     let (rules, prints) = get_rules_and_prints(args.file_path);
     let sum = sum_print_commands(&prints, &rules);
     info!("Answer 1: {sum}");
+
+    let before = Instant::now();
     let fixed_prints = fixed_print_commands(&prints, &rules);   
     let fixed_sum = sum_print_commands(&fixed_prints, &rules);
-    info!("Answer 2: {fixed_sum}");
+    info!("Answer 2: {fixed_sum} Elapsed time: {:.2?}", before.elapsed());
+
+    let before2 = Instant::now();
+    let comparator_sum = comparator_approach(&rules, &prints);
+    info!("Answer 2 -- better: {comparator_sum} Elapsed time: {:.2?}", before2.elapsed());
 }

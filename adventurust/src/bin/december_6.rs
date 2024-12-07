@@ -1,5 +1,6 @@
 use clap::Parser;
 use enum_map::{enum_map, Enum, EnumMap};
+use itertools::Itertools;
 use log::{self, debug, info};
 use std::{collections::HashMap, fs, collections::HashSet};
 
@@ -21,17 +22,15 @@ struct MapState {
     map: Map,
     guard_position: (usize, usize),
     guard_type: MapType,
-    guard_states: HashSet<(MapType, usize, usize)>,
+    guard_states: HashSet<(MapType, (usize, usize))>,
     prior_space_state: MapType,
     map_size: (usize, usize),
-    loop_detected: bool,
     guard_step: EnumMap<MapType, (i8, i8)>,
     map_string: EnumMap<MapType, char>,
     valid_moves: EnumMap<MapType, MapType>,
     guard_present: bool,
     all_turns: HashMap<MapType, Vec<(usize, usize)>>,
     number_of_loops: i32,
-    num_positions_visited: usize,
 }
 
 type Map = Vec<Vec<MapType>>;
@@ -113,20 +112,23 @@ fn check_if_potential_loop(original_map: &MapState) -> bool {
         map.guard_position.1 as i32 + guard_step.1 as i32,
     );
     
-    if !bounds_check(new_position, map.map_size){
+    if !bounds_check(new_position, map.map_size) || 
+        map.map[new_position.0 as usize][new_position.1 as usize] == MapType::Obstruction {
         return false
     }
+
     map.map[new_position.0 as usize][new_position.1 as usize] = MapType::Obstruction;
 
     debug!("Simulating {:?} {:?}", map.guard_position, map.guard_type);
-    while map.guard_present && !map.loop_detected {
+    while map.guard_present {
         map_step(&mut map, false);
-        if map.guard_states.contains(&(map.guard_type, map.guard_position.0, map.guard_position.1)){
-            map.loop_detected = true;
+        if map.guard_states.contains(&(map.guard_type, map.guard_position)){
+            debug!("Loop detected {:?} {:?}", map.guard_position, map.guard_type);
+            return true
         }
     } 
 
-    map.loop_detected
+    false
 }
 
 
@@ -164,12 +166,11 @@ fn map_step(map: &mut MapState, simulate: bool) -> &MapState {
         return map;
     }
 
-    map.guard_states.insert((map.guard_type, map.guard_position.0, map.guard_position.1));
+    map.guard_states.insert((map.guard_type, map.guard_position));
 
     let new_position_state = map.map[new_position.0 as usize][new_position.1 as usize];
     match new_position_state {
         MapType::Empty => {
-            map.num_positions_visited += 1;
             map.guard_position = (new_position.0 as usize, new_position.1 as usize);         
             map.map[guard_position.0 as usize][guard_position.1 as usize] = get_visit_type(map.guard_type, map.prior_space_state);
             map.map[new_position.0 as usize][new_position.1 as usize] = map.guard_type;
@@ -187,6 +188,7 @@ fn map_step(map: &mut MapState, simulate: bool) -> &MapState {
             } else {
                 MapType::VisitedHorizontal
             };
+            
             map.guard_type = map.valid_moves[map.guard_type];
             map.map[guard_position.0 as usize][guard_position.1 as usize] = get_visit_type(map.guard_type, map.prior_space_state);
             map.all_turns
@@ -295,22 +297,20 @@ fn main() {
         map_string: map_string,
         valid_moves: valid_moves,
         guard_present: true,
-        num_positions_visited: 1,
         number_of_loops: 0,
         all_turns: all_turns,
-        loop_detected: false,
     };
     info!("Guard found at: {:?}", map_state.guard_position);
 
     while map_state.guard_present {
-        info!("Guard position: {:?}", map_state.guard_position);
         map_step(&mut map_state, true);
+        debug!("Guard position: {:?}", map_state.guard_position);
     }
 
     print_map(&map_state.map, map_state.map_string);
     info!(
         "Number of positions visited: {}",
-        map_state.num_positions_visited
+        map_state.guard_states.into_iter().map(|x| x.1).unique().collect::<Vec<(usize,usize)>>().len() + 1
     );
-    info!("Number of loops: {}", map_state.number_of_loops);
+    info!("Number of loops is wrong it should be 1309. I can't figure out why not :((((( : {}", map_state.number_of_loops);
 }

@@ -12,3 +12,9 @@ To run
 ```
 cargo run --bin december_{x} ./path/to/input.txt
 ```
+
+
+
+# Issues
+
+- Day 6 part 2 is not working -- over counts for some reason and I can't figure out why

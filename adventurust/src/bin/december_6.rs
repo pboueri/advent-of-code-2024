@@ -116,7 +116,7 @@ fn check_if_potential_loop(original_map: &MapState) -> bool {
         map.map[new_position.0 as usize][new_position.1 as usize] == MapType::Obstruction {
         return false
     }
-
+    //map.guard_states = HashSet::new();
     map.map[new_position.0 as usize][new_position.1 as usize] = MapType::Obstruction;
 
     debug!("Simulating {:?} {:?}", map.guard_position, map.guard_type);

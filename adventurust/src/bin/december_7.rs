@@ -1,7 +1,7 @@
-use std::fs;
+use std::{fs, ptr::eq, vec};
 use clap::Parser;
 use log::{self, debug, info, trace};
-use itertools::Itertools;
+use itertools::{any, Itertools};
 
 
 /*
@@ -56,23 +56,27 @@ fn equation_to_string(equation: &Equation, operations: &Vec<Operations>) -> Stri
     result
 }
 
+fn compute_operation(
+    first_value: i64,
+    operation: Operations,
+    second_value: i64,
+) -> i64 {
+    match operation {
+        Operations::Add => first_value + second_value,
+        Operations::Multiply => first_value * second_value,
+        Operations::Concatenate => {
+            let mut new_value = first_value.to_string();
+            new_value += &second_value.to_string();
+            new_value.parse::<i64>().unwrap()
+        }
+    }
+}
+
 fn compute_operations(equation: &Equation, operations: &Vec<Operations>) -> i64 {
     let mut result = equation.first_value;
     for (index, operation) in operations.iter().enumerate() {
         let part = equation.remaining_values[index];
-        match *operation {
-            Operations::Add => {
-                result += part;
-            }
-            Operations::Multiply => {
-                result *= part;
-            }
-            Operations::Concatenate => {
-                let mut new_value = result.to_string();
-                new_value += &part.to_string();
-                result = new_value.parse::<i64>().unwrap();
-            }
-        }
+        result = compute_operation(result, *operation, part);
     }
     result
 }
@@ -202,7 +206,6 @@ fn generate_operation_combinations(length: usize) -> Vec<Vec<Operations>> {
 
 fn search_for_solution_with_concatenate(equation: Equation) -> bool{
     let num_operations = equation.remaining_values.len();
-    let total_combinations = (3 as i32).pow(num_operations as u32);
 
     
     for operations in generate_operation_combinations(num_operations) {
@@ -239,6 +242,30 @@ fn get_equations(file_path: String) -> Vec<Equation>{
 }
 
 
+fn recursive_answer(equation: &Equation, acc: i64, operations: &Vec<Operations>) -> bool{
+    if equation.target < acc {
+       return false
+    }
+    if equation.remaining_values.len() == 0 {
+        return acc == equation.target;
+    }
+    let mut bools = Vec::new();
+    let new_first_value = equation.remaining_values[0];
+    let new_remaining_values = equation.remaining_values[1..].to_vec();
+    let new_equation = Equation {
+        target: equation.target,
+        first_value: new_first_value,
+        remaining_values: new_remaining_values
+    };
+    for operation in operations.iter() {
+        debug!("Trying operation: {operation:?} -- {acc} -- {new_first_value}");
+        bools.push(recursive_answer(&new_equation, compute_operation(acc, *operation, new_first_value), operations));
+    }
+    
+    return any(bools, |b| b) 
+    
+}
+
 
 
 fn main(){
@@ -256,7 +283,7 @@ fn main(){
             sum += equation.target;
         }
     }
-    info!("Answer 1: {}", sum);
+    info!("Answer 1: {sum}");
     let mut concact_sum = 0;
     for equation in equations.iter() {
         if search_for_solution_with_concatenate(equation.clone()){
@@ -264,5 +291,21 @@ fn main(){
         }
     }
     
-    info!("Answer 2: {}", concact_sum);
+    info!("Answer 2: {concact_sum}");
+    
+    let mut recursive_sum = 0;
+    for equation in equations.iter() {
+        if recursive_answer(equation, equation.first_value, &vec![Operations::Add, Operations::Multiply]) {
+            recursive_sum += equation.target;
+        }
+    }
+    info!("Answer 1 -- recursive: {recursive_sum}");
+    
+    recursive_sum = 0;
+    for equation in equations.iter() {
+        if recursive_answer(equation, equation.first_value, &vec![Operations::Add, Operations::Multiply, Operations::Concatenate]) {
+            recursive_sum += equation.target;
+        }
+    }
+    info!("Answer 2 -- recursive: {recursive_sum}");
 }

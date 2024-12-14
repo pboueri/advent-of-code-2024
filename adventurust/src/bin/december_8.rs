@@ -97,7 +97,7 @@ struct Cli {
     target_number: Option<i64>,
 }
 
-fn get_map(file_path: String) -> Map{
+fn get_map(file_path: String) -> Map {
     let mut antennae = Vec::new();
     let mut antinode_locations = HashSet::new();
     let raw_data = fs::read_to_string(file_path).expect("Failed to read file");

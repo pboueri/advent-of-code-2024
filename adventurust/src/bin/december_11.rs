@@ -73,18 +73,48 @@ fn print_stones(stones: &LinkedList<Stone>) {
     println!();
 }
 
-fn stone_steps(stone: &Stone, num_steps_left: i32, known_steps: & mut HashMap<(Stone, HashMap<i32, LinkedList<Stone>>>) -> LinkedList<Stone> {
+
+
+fn stone_steps(stone: &Stone, num_steps_left: i32, known_steps: & mut HashMap<Stone, HashMap<i32, LinkedList<Stone>>>) -> LinkedList<Stone> {
     debug!("stone_steps: {:?} {:?}", stone, num_steps_left);
+    
+    if ! known_steps.contains_key(&stone) {
+        known_steps.insert(stone.clone(), HashMap::new());
+    }
+
+    // When no steps left, return the stone
     if num_steps_left == 0 {
         let mut steps = LinkedList::new();
         steps.push_back(stone.clone());
         return steps
     }
 
-    // TODO: instead of _exact_ steps, we can "fast forward" if we have known steps that are fewer than what has been seen (i.e. if it's 5 steps and we know 4, we just need to get 4 and do the fifth comp)
-    if let Some(known_steps) = known_steps.get(&(stone.clone(), num_steps_left)) {
-        return known_steps.clone();
+    // Where some value is cached, use it
+    if  known_steps.get(&(stone.clone())).is_some() && known_steps.get(&(stone.clone())).unwrap().len()>0 {
+        // get the maximum steps available that are less than num_steps_left
+        let mut max_steps = 0;
+        for (steps, _) in  known_steps.get(&(stone.clone())).unwrap() {
+            if *steps <= num_steps_left && *steps > max_steps {
+                max_steps = *steps;
+            }
+        }
+        if max_steps ==  0 {
+            debug!("no steps found for {:?} {:?}", stone, num_steps_left);
+            debug!("{:?}", known_steps.get(&(stone.clone())).unwrap());
+        } else{
+
+            let last_known_step = known_steps.get(&(stone.clone())).unwrap().get(&max_steps).unwrap().clone();
+            let mut new_steps = LinkedList::new();
+            for last_known_stone in  last_known_step {
+                let mut steps = stone_steps(&last_known_stone, num_steps_left - max_steps, known_steps);
+                new_steps.append(&mut steps);
+            }
+            known_steps.get_mut(&stone).unwrap().insert(num_steps_left, new_steps.clone());
+            return new_steps
+        }
     }
+
+    // Otherwise calculate totally new values and memoize them
     let mut new_stones = LinkedList::new();
     let (new_stone, new_stone_2) = stone.apply_rule();
     new_stones.push_back(new_stone);
@@ -93,12 +123,11 @@ fn stone_steps(stone: &Stone, num_steps_left: i32, known_steps: & mut HashMap<(S
     }
     let mut new_stones_2 = LinkedList::new();
     for new_stone in new_stones {
-        let temp = stone_steps(&new_stone, num_steps_left-1, known_steps);
-        for new_stone_2 in temp {
-            new_stones_2.push_back(new_stone_2);
-        }
+        let mut temp = stone_steps(&new_stone, num_steps_left-1, known_steps);
+        new_stones_2.append(& mut temp);   
     }
-    known_steps.insert((stone.clone(), num_steps_left), new_stones_2.clone());
+    
+    known_steps.get_mut(&stone).unwrap().insert(num_steps_left, new_stones_2.clone());
 
     new_stones_2
 }

@@ -5,9 +5,14 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
+coin_cbc = "0.1.8"
 enum-map = "2.7.3"
 env_logger = "0.11.5"
 fs = "0.0.5"
+good_lp = { version = "1.10.0", features = ["highs"] }
+highs = "1.6.1"
 itertools = "0.13.0"
 log = "0.4.22"
+microlp = "0.2.7"
 regex = "1.11.1"
+simplex = "1.0.0"

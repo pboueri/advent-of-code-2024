@@ -19,3 +19,5 @@ cargo run --bin december_{x} ./path/to/input.txt
 
 - Day 6 part 2 is not working -- over counts for some reason and I can't figure out why
 - Day 11 part 2 i couldn't figure out how to do it in a way that was performant enough
+- Day 13 part 2 algorithm is not working.
+- Day 14 im not doing / dont understand 

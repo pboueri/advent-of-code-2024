@@ -83,7 +83,7 @@ impl Problem {
     
         let a = (y_target - x_target / x_2  * y_2) / (y_1 - x_1 / x_2 * y_2);
         let b = (x_target - a * x_1) / x_2;
-        if a.fract() == 0.0 && b.fract() == 0.0 {
+        if a.fract() == 0.0 && b.fract() == 0.0  && a.is_sign_positive()  && b.is_sign_positive(){
             debug!("Solution: ({a},{b}) -- Problem {:?}", self);
             debug !("x_target: {x_target} = {} ", a * x_1 + b * x_2);
             debug !("y_target: {y_target} = {} ", a * y_1 + b * y_2);
@@ -158,7 +158,6 @@ fn main(){
     for problem in problems.iter() {
         let cost  = problem.solution_cost();
         if cost != 0 {
-            problem.print();
             total_cost += cost;
             total_solved += 1;
         }
@@ -168,9 +167,9 @@ fn main(){
     let mut total_cost_part_2: i64 = 0;
     let mut total_solved_part_2 = 0;
     for (no, problem) in problems.iter().enumerate() {
-        let cost  = problem.alt_solution();
+        let cost  = problem.solution_part_2_cost();
         if cost.is_some() {
-            info!("Found solution for problem {no}, A={}, B={}", cost.unwrap().0 as i64, cost.unwrap().1 as i64);
+            info!("Problem {no} solved");
             total_cost_part_2 += cost.unwrap().0 * COST_A as i64 + cost.unwrap().1 * COST_B as i64;
             total_solved_part_2 += 1;
         }

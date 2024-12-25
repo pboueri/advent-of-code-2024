@@ -83,7 +83,7 @@ impl Problem {
     
         let a = (y_target - x_target / x_2  * y_2) / (y_1 - x_1 / x_2 * y_2);
         let b = (x_target - a * x_1) / x_2;
-        if a.fract() == 0.0 && b.fract() == 0.0  && a.is_sign_positive()  && b.is_sign_positive(){
+        if a.fract() == 0.0 && b.fract() == 0.0  && !a.is_sign_negative()  && !b.is_sign_negative(){
             debug!("Solution: ({a},{b}) -- Problem {:?}", self);
             debug !("x_target: {x_target} = {} ", a * x_1 + b * x_2);
             debug !("y_target: {y_target} = {} ", a * y_1 + b * y_2);

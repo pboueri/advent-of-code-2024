@@ -13,7 +13,14 @@ To run
 cargo run --bin december_{x} ./path/to/input.txt
 ```
 
+## Results
 
+And the results are in, here's my summary:
+- I love rust, and dont know how to program in it. The borrow checker is amazing.
+- I solved more than 10 puzzles, hurray!
+- I enjoyed these puzzles, but am inefficient at solving them and need to practice to be more fluent in problem pattern identification
+- People are really good at this from looking at public stuff
+- The most fun i had was when i could use things like a good_lp, though totally unnecessary
 
 # Issues
 
